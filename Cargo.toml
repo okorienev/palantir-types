@@ -1,0 +1,17 @@
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[package]
+version = "0.0.1"
+crate-type = ["lib"]
+name       = "palantir-types"
+path       = "src/lib.rs"
+license    = "MIT OR Apache-2.0"
+test       = true
+doctest    = true
+doc        = true
+edition    = "2018"
+
+[dependencies]
+deku        = "0.10.0"
+lazy_static = "1.4.0"
+syn         = "1.0.60"
