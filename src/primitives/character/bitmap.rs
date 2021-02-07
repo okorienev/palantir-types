@@ -1,11 +1,8 @@
 use std::vec::Vec;
-use std::ops::Deref;
 
 use lazy_static::lazy_static;
-use deku::prelude::*;
-use deku::ctx::Size;
 
-const ALLOWED_UTF8_CHARACTERS: [u8; 65] = [
+pub const ALLOWED_UTF8_CHARACTERS: [u8; 65] = [
     0x2d,  // -     HYPHEN-MINUS
     0x2e,  // .     FULL STOP
     0x5f,  // _     LOW LINE
@@ -100,12 +97,12 @@ const MASKS: [u8; U8_BITS as usize] = [
 ];
 
 
-/// Represents data structure to make character allowance check with constant complexity
+/// Represents data structure to make character allowance check with constant complexity  
 /// Main idea:
 /// * Only 0-255 character codes are theoretically allowed
 /// * We form a bit vector with 256 bit (64 byte) length
 /// * If bit value at char code index is 1 then it's allowed and disallowed otherwise
-struct BitMap {
+pub struct BitMap {
     pub map: Vec<u8>
 }
 
@@ -133,68 +130,13 @@ impl BitMap {
 }
 
 lazy_static! {
-    static ref BITMAP: BitMap = BitMap::generate();
-}
-
-#[derive(Debug)]
-pub struct Character(u8);
-
-impl Deref for Character {
-    type Target = u8;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl AsRef<u8> for Character {
-    fn as_ref(&self) -> &u8 {
-        &self.0
-    }
-}
-
-impl PartialEq for Character {
-    fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
-    }
-
-    fn ne(&self, other: &Self) -> bool {
-        self.0 != other.0
-    }
-}
-
-
-impl DekuRead<'_> for Character {
-    fn read<'a>(input: &'a BitSlice<Msb0, u8>, ctx: ()) -> Result<(&BitSlice<Msb0, u8>, Self), DekuError> where
-        Self: Sized {
-        let (rest, val) = u8::read(input, ctx)?;
-
-        if !BITMAP.check(val) {
-            return Err(DekuError::InvalidParam(format!(
-                "character code {} is not allowed", val
-            )));
-        };
-
-        Ok((rest, Character(val)))
-    }
-}
-
-impl DekuWrite for Character {
-    fn write(&self, output: &mut BitVec<Msb0, u8>, ctx: ()) -> Result<(), DekuError> {
-        if !BITMAP.check(self.0) {
-            return Err(DekuError::InvalidParam(format!(
-                "character code {} is not allowed", self.0
-            )))
-        };
-
-        self.0.write(output,  ctx)
-    }
+    pub static ref BITMAP: BitMap = BitMap::generate();
 }
 
 #[cfg(test)]
-mod tests{
-    use crate::primitives::character::{BitMap, ALLOWED_UTF8_CHARACTERS, Character};
+mod tests {
     use deku::prelude::*;
+    use crate::primitives::character::bitmap::{BitMap, ALLOWED_UTF8_CHARACTERS};
 
     #[test]
     fn test_bitmap_valid() {
@@ -209,29 +151,12 @@ mod tests{
     fn test_bitmap_invalid() {
         let bitmap = BitMap::generate();
 
-        for char_code in 0u8 .. 0x20 {  // control symbols
+        for char_code in 0u8..0x20 {  // control symbols
             assert!(!bitmap.check(char_code))
         }
 
-        for char_code in 0x3au8 .. 0x41 {  // different signs
+        for char_code in 0x3au8..0x41 {  // different signs
             assert!(!bitmap.check(char_code))
         }
     }
-
-    #[derive(Debug, PartialEq, DekuRead, DekuWrite)]
-    struct CharacterTest(Character);
-
-    #[test]
-    fn test_valid_characters() {
-
-        for char_code in ALLOWED_UTF8_CHARACTERS.iter() {
-            let data = [*char_code];
-            let (_rest, mut val) = CharacterTest::from_bytes((&data, 0)).unwrap();
-            assert_eq!(CharacterTest(Character(*char_code)), val);
-
-            let data_out = val.to_bytes().unwrap();
-            assert_eq!(data_out, [*char_code]);
-        }
-    }
-
 }
