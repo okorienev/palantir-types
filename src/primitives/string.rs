@@ -1,23 +1,22 @@
 #[macro_use]
-
 use std::vec::Vec;
 
-use deku::prelude::*;
+use super::character::Character;
 use deku::ctx::Size;
-use super::character::{ Character };
+use deku::prelude::*;
 
 fn sized_u8_read(
     rest: &BitSlice<Msb0, u8>,
     bit_size: Size,
     max_value: u8,
 ) -> Result<(&BitSlice<Msb0, u8>, u8), DekuError> {
-
     let (rest, value) = u8::read(rest, bit_size)?;
 
     if value > max_value {
         return Err(DekuError::InvalidParam(format!(
-            "Value {} is greater than max allowed {}", value, max_value
-        )))
+            "Value {} is greater than max allowed {}",
+            value, max_value
+        )));
     }
 
     Ok((rest, value))
@@ -31,8 +30,9 @@ fn sized_u8_write(
 ) -> Result<(), DekuError> {
     if value > max_value {
         return Err(DekuError::InvalidParam(format!(
-            "Value {} is greater than max allowed {}", value, max_value
-        )))
+            "Value {} is greater than max allowed {}",
+            value, max_value
+        )));
     }
 
     value.write(output, bit_size)

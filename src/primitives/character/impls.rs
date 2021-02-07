@@ -1,11 +1,10 @@
 use std::ops::Deref;
 
-use deku::prelude::*;
 use deku::ctx::Size;
+use deku::prelude::*;
 
-use super::{Character};
-use super::bitmap::{BITMAP};
-
+use super::bitmap::BITMAP;
+use super::Character;
 
 impl Deref for Character {
     type Target = u8;
@@ -31,15 +30,20 @@ impl PartialEq for Character {
     }
 }
 
-
 impl DekuRead<'_> for Character {
-    fn read<'a>(input: &'a BitSlice<Msb0, u8>, ctx: ()) -> Result<(&BitSlice<Msb0, u8>, Self), DekuError> where
-        Self: Sized {
+    fn read<'a>(
+        input: &'a BitSlice<Msb0, u8>,
+        ctx: (),
+    ) -> Result<(&BitSlice<Msb0, u8>, Self), DekuError>
+    where
+        Self: Sized,
+    {
         let (rest, val) = u8::read(input, ctx)?;
 
         if !BITMAP.check(val) {
             return Err(DekuError::InvalidParam(format!(
-                "character code {} is not allowed", val
+                "character code {} is not allowed",
+                val
             )));
         };
 
@@ -51,10 +55,11 @@ impl DekuWrite for Character {
     fn write(&self, output: &mut BitVec<Msb0, u8>, ctx: ()) -> Result<(), DekuError> {
         if !BITMAP.check(self.0) {
             return Err(DekuError::InvalidParam(format!(
-                "character code {} is not allowed", self.0
-            )))
+                "character code {} is not allowed",
+                self.0
+            )));
         };
 
-        self.0.write(output,  ctx)
+        self.0.write(output, ctx)
     }
 }
