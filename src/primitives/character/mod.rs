@@ -2,7 +2,7 @@ mod bitmap;
 mod impls;
 
 #[derive(Debug)]
-pub struct Character(u8);
+pub struct Character(pub u8);
 
 #[cfg(test)]
 mod tests {
