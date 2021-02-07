@@ -14,4 +14,3 @@ edition    = "2018"
 [dependencies]
 deku        = "0.10.0"
 lazy_static = "1.4.0"
-syn         = "1.0.60"

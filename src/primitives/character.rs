@@ -1,4 +1,5 @@
 use std::vec::Vec;
+use std::ops::Deref;
 
 use lazy_static::lazy_static;
 use deku::prelude::*;
@@ -135,7 +136,33 @@ lazy_static! {
     static ref BITMAP: BitMap = BitMap::generate();
 }
 
+#[derive(Debug)]
 pub struct Character(u8);
+
+impl Deref for Character {
+    type Target = u8;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl AsRef<u8> for Character {
+    fn as_ref(&self) -> &u8 {
+        &self.0
+    }
+}
+
+impl PartialEq for Character {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+
+    fn ne(&self, other: &Self) -> bool {
+        self.0 != other.0
+    }
+}
+
 
 impl DekuRead<'_> for Character {
     fn read<'a>(input: &'a BitSlice<Msb0, u8>, ctx: ()) -> Result<(&BitSlice<Msb0, u8>, Self), DekuError> where
@@ -154,19 +181,20 @@ impl DekuRead<'_> for Character {
 
 impl DekuWrite for Character {
     fn write(&self, output: &mut BitVec<Msb0, u8>, ctx: ()) -> Result<(), DekuError> {
-        if BITMAP.check(self.0) {
+        if !BITMAP.check(self.0) {
             return Err(DekuError::InvalidParam(format!(
                 "character code {} is not allowed", self.0
             )))
         };
 
-        self.write(output,  ctx)
+        self.0.write(output,  ctx)
     }
 }
 
 #[cfg(test)]
 mod tests{
-    use crate::primitives::character::{BitMap, ALLOWED_UTF8_CHARACTERS};
+    use crate::primitives::character::{BitMap, ALLOWED_UTF8_CHARACTERS, Character};
+    use deku::prelude::*;
 
     #[test]
     fn test_bitmap_valid() {
@@ -187,6 +215,22 @@ mod tests{
 
         for char_code in 0x3au8 .. 0x41 {  // different signs
             assert!(!bitmap.check(char_code))
+        }
+    }
+
+    #[derive(Debug, PartialEq, DekuRead, DekuWrite)]
+    struct CharacterTest(Character);
+
+    #[test]
+    fn test_valid_characters() {
+
+        for char_code in ALLOWED_UTF8_CHARACTERS.iter() {
+            let data = [*char_code];
+            let (_rest, mut val) = CharacterTest::from_bytes((&data, 0)).unwrap();
+            assert_eq!(CharacterTest(Character(*char_code)), val);
+
+            let data_out = val.to_bytes().unwrap();
+            assert_eq!(data_out, [*char_code]);
         }
     }
 

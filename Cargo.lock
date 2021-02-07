@@ -99,7 +99,6 @@ version = "0.0.1"
 dependencies = [
  "deku",
  "lazy_static",
- "syn",
 ]
 
 [[package]]
