@@ -1,0 +1,20 @@
+shell: /bin/bash
+
+commands:
+  enable-hooks:
+    description: enable git hooks
+    cmd: |
+      git config --local core.hooksPath .hooks
+
+  disable-hooks:
+    description: disable git hooks
+    cmd: |
+      git config --local --unset core.hooksPath
+
+  build:
+    cmd: |
+      cargo build
+
+  test:
+    cmd: |
+      cargo test

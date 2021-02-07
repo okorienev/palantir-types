@@ -1,0 +1,21 @@
+#!/bin/sh
+echo "Checking commit"
+
+RUST_DIFF=$(git diff --staged --diff-filter=d --name-only '*.rs')
+
+EXIT_CODE=0;
+
+if [ -n "$RUST_DIFF" ]; then
+  echo "Installing rustfmt (if needed)"
+  rustup component add rustfmt > /dev/null 2>&1
+  echo "rustfmt installed or already up to date"
+
+  echo "Running rust format check"
+  if ! cargo fmt -- --check
+  then
+    echo "Cargo format failed, run 'cargo fmt' and try again"
+    EXIT_CODE=1;
+  fi
+fi
+
+exit $EXIT_CODE
