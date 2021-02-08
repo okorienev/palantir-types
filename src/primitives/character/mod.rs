@@ -1,8 +1,11 @@
+use std::fmt::Debug;
+
 mod bitmap;
+pub mod error;
 mod impls;
 
-#[derive(Debug)]
-pub struct Character(pub u8);
+#[derive(Debug, Copy, Clone)]
+pub struct Character(u8);
 
 #[cfg(test)]
 mod tests {
