@@ -85,53 +85,53 @@ macro_rules! string_impl {
 #[derive(Debug, PartialEq, DekuRead, DekuWrite)]
 pub struct String8 {
     #[deku(pad_bits_before = "5", bits = "3", update = "self.data.len()")]
-    pub count: u8,
+    count: u8,
     #[deku(count = "count")]
-    pub data: Vec<Character>,
+    data: Vec<Character>,
 }
 string_impl!(String8, 7);
 
 #[derive(Debug, PartialEq, DekuRead, DekuWrite)]
 pub struct String16 {
     #[deku(pad_bits_before = "4", bits = "4", update = "self.data.len()")]
-    pub count: u8,
+    count: u8,
     #[deku(count = "count")]
-    pub data: Vec<Character>,
+    data: Vec<Character>,
 }
 string_impl!(String16, 15);
 
 #[derive(Debug, PartialEq, DekuRead, DekuWrite)]
 pub struct String32 {
     #[deku(pad_bits_before = "3", bits = "5", update = "self.data.len()")]
-    pub count: u8,
+    count: u8,
     #[deku(count = "count")]
-    pub data: Vec<Character>,
+    data: Vec<Character>,
 }
 string_impl!(String32, 31);
 
 #[derive(Debug, PartialEq, DekuRead, DekuWrite)]
 pub struct String64 {
     #[deku(pad_bits_before = "2", bits = "6", update = "self.data.len()")]
-    pub count: u8,
+    count: u8,
     #[deku(count = "count")]
-    pub data: Vec<Character>,
+    data: Vec<Character>,
 }
 string_impl!(String64, 63);
 
 #[derive(Debug, PartialEq, DekuRead, DekuWrite)]
 pub struct String128 {
     #[deku(pad_bits_before = "1", bits = "7", update = "self.data.len()")]
-    pub count: u8,
+    count: u8,
     #[deku(count = "count")]
-    pub data: Vec<Character>,
+    data: Vec<Character>,
 }
 string_impl!(String128, 127);
 
 #[derive(Debug, PartialEq, DekuRead, DekuWrite)]
 pub struct String256 {
-    pub count: u8,
+    count: u8,
     #[deku(count = "count")]
-    pub data: Vec<Character>,
+    data: Vec<Character>,
 }
 string_impl!(String256, 255);
 

@@ -14,10 +14,7 @@ pub fn bench_string_8_deserialize(c: &mut Criterion) {
 }
 
 pub fn bench_string_8_serialize(c: &mut Criterion) {
-    let s = String8 {
-        count: 7,
-        data: vec![Character::try_from(0x30).unwrap(); 7],
-    };
+    let s = String8::try_from(vec![0x30u8; 7]).unwrap();
     c.bench_function("String8 serialize", |b| b.iter(|| s.to_bytes()));
 }
 
@@ -31,10 +28,7 @@ pub fn bench_string_16_deserialize(c: &mut Criterion) {
 }
 
 pub fn bench_string_16_serialize(c: &mut Criterion) {
-    let s = String8 {
-        count: 15,
-        data: vec![Character::try_from(0x30).unwrap(); 15],
-    };
+    let s = String16::try_from(vec![0x30u8; 15]).unwrap();
     c.bench_function("String16 serialize", |b| b.iter(|| s.to_bytes()));
 }
 
@@ -48,10 +42,7 @@ pub fn bench_string_256_deserialize(c: &mut Criterion) {
 }
 
 pub fn bench_string_256_serialize(c: &mut Criterion) {
-    let s = String8 {
-        count: 255,
-        data: vec![Character::try_from(0x30).unwrap(); 255],
-    };
+    let s = String256::try_from(vec![0x30u8; 255]).unwrap();
     c.bench_function("String256 serialize", |b| b.iter(|| s.to_bytes()));
 }
 
