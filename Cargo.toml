@@ -2,14 +2,15 @@
 
 [package]
 version = "0.0.1"
-crate-type = ["lib"]
 name       = "palantir-types"
-path       = "src/lib.rs"
 license    = "MIT OR Apache-2.0"
+edition    = "2018"
+[lib]
+crate-type = ["lib"]
 test       = true
 doctest    = true
 doc        = true
-edition    = "2018"
+path       = "src/lib.rs"
 
 [dependencies]
 deku        = "0.10.0"

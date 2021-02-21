@@ -1,8 +1,6 @@
 use deku::prelude::*;
 
-use super::super::bitmap::BITMAP;
 use super::super::Character;
-use crate::primitives::character::error::CharacterError;
 use std::convert::TryFrom;
 
 impl DekuRead<'_> for Character {

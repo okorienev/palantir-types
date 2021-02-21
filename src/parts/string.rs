@@ -1,23 +1,40 @@
 use crate::primitives::character::Character;
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryFrom;
 use std::string::FromUtf8Error;
 
 use crate::primitives::character::error::CharacterError;
 use deku::prelude::*;
+use std::fmt;
 
-macro_rules! try_into_string {
+#[derive(Debug, Clone)]
+pub enum StringError {
+    CharacterError(CharacterError),
+    LengthError(usize),
+}
+
+impl fmt::Display for StringError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self {
+            Self::CharacterError(e) => e.fmt(f),
+            Self::LengthError(length) => {
+                write!(f, "Trying initialize too long string ({})", length)
+            }
+        }
+    }
+}
+
+macro_rules! string_try_from {
     ($name: ident) => {
-        impl TryInto<String> for $name {
+        impl TryFrom<$name> for String {
             type Error = FromUtf8Error;
 
-            fn try_into(self) -> Result<String, Self::Error> {
-                let mut char_codes: Vec<u8> = Vec::with_capacity(self.data.len() as usize);
-
-                for char_code in &self.data {
+            fn try_from(value: $name) -> Result<Self, Self::Error> {
+                let mut char_codes: Vec<u8> = Vec::with_capacity(value.data.len() as usize);
+                for char_code in &value.data {
                     char_codes.push(**char_code)
                 }
 
-                Ok(String::from_utf8(char_codes)?)
+                String::from_utf8(char_codes)
             }
         }
     };
@@ -26,12 +43,19 @@ macro_rules! try_into_string {
 macro_rules! try_from_u8_vec {
     ($name: ident) => {
         impl TryFrom<Vec<u8>> for $name {
-            type Error = CharacterError;
+            type Error = StringError;
 
             fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+                if value.len() > Self::MAX {
+                    return Err(Self::Error::LengthError(value.len()));
+                }
                 let mut data: Vec<Character> = Vec::with_capacity(value.len());
+
                 for char_code in &value {
-                    data.push(Character::try_from(*char_code)?);
+                    match Character::try_from(*char_code) {
+                        Ok(c) => data.push(c),
+                        Err(e) => return Err(Self::Error::CharacterError(e)),
+                    }
                 }
                 Ok(Self {
                     count: value.len() as u8,
@@ -42,9 +66,18 @@ macro_rules! try_from_u8_vec {
     };
 }
 
+macro_rules! own_methods {
+    ($name: ident, $max_size: literal) => {
+        impl $name {
+            pub const MAX: usize = $max_size;
+        }
+    };
+}
+
 macro_rules! string_impl {
-    ($name: ident) => {
-        try_into_string!($name);
+    ($name: ident, $max_size: literal) => {
+        own_methods!($name, $max_size);
+        string_try_from!($name);
         try_from_u8_vec!($name);
     };
 }
@@ -56,7 +89,7 @@ pub struct String8 {
     #[deku(count = "count")]
     pub data: Vec<Character>,
 }
-string_impl!(String8);
+string_impl!(String8, 7);
 
 #[derive(Debug, PartialEq, DekuRead, DekuWrite)]
 pub struct String16 {
@@ -65,7 +98,7 @@ pub struct String16 {
     #[deku(count = "count")]
     pub data: Vec<Character>,
 }
-string_impl!(String16);
+string_impl!(String16, 15);
 
 #[derive(Debug, PartialEq, DekuRead, DekuWrite)]
 pub struct String32 {
@@ -74,7 +107,7 @@ pub struct String32 {
     #[deku(count = "count")]
     pub data: Vec<Character>,
 }
-string_impl!(String32);
+string_impl!(String32, 31);
 
 #[derive(Debug, PartialEq, DekuRead, DekuWrite)]
 pub struct String64 {
@@ -83,7 +116,7 @@ pub struct String64 {
     #[deku(count = "count")]
     pub data: Vec<Character>,
 }
-string_impl!(String64);
+string_impl!(String64, 63);
 
 #[derive(Debug, PartialEq, DekuRead, DekuWrite)]
 pub struct String128 {
@@ -92,7 +125,7 @@ pub struct String128 {
     #[deku(count = "count")]
     pub data: Vec<Character>,
 }
-string_impl!(String128);
+string_impl!(String128, 127);
 
 #[derive(Debug, PartialEq, DekuRead, DekuWrite)]
 pub struct String256 {
@@ -100,7 +133,7 @@ pub struct String256 {
     #[deku(count = "count")]
     pub data: Vec<Character>,
 }
-string_impl!(String256);
+string_impl!(String256, 255);
 
 #[cfg(test)]
 mod tests {
@@ -173,5 +206,35 @@ mod tests {
     fn test_try_from_u8_vec_invalid() {
         let data = vec![0xffu8];
         let val = String8::try_from(data).unwrap();
+    }
+
+    #[test]
+    fn test_string_to_long() {
+        const LENGTH: usize = 8;
+        let data = vec![0x30u8; LENGTH];
+        match &String8::try_from(data) {
+            Ok(res) => {
+                assert!(false)
+            }
+            Err(err) => match &err {
+                StringError::CharacterError(err) => {
+                    assert!(false)
+                }
+                StringError::LengthError(size) => {
+                    assert_eq!(*size, LENGTH)
+                }
+            },
+        }
+    }
+
+    #[test]
+    fn test_try_into_string() {
+        let data = vec![0x30u8; 7];
+
+        let string8 = String8::try_from(data).unwrap();
+        let s = String::try_from(string8).unwrap();
+        let s2 = String::from("0000000");
+
+        assert_eq!(s, s2);
     }
 }

@@ -1,8 +1,6 @@
 use std::convert::TryFrom;
 use std::ops::Deref;
 
-use deku::DekuError;
-
 use super::super::bitmap::BITMAP;
 use super::super::error::CharacterError;
 use super::super::Character;
